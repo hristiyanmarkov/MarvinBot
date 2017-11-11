@@ -1,3 +1,5 @@
+![marvin_banner](/marvin/marvin_banner.png)
+
 # MarvinBot
 MarvinBot is a Discord App bot.
 
