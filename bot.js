@@ -117,7 +117,7 @@ bot.on('message', (message) => {
               "author": {
                 "name": "MarvinBot",
                 "url": "https://discordapp.com",
-                "icon_url": "http://findicons.com/files/icons/1626/the_hitchhiker_s_guide_to_the_galaxy/128/marvin.png"
+                "icon_url": "https://raw.githubusercontent.com/hristiyanmarkov/MarvinBot/master/marvin/marvin.jpg"
               },
               "fields": [
                     {
