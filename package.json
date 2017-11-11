@@ -1,0 +1,16 @@
+{
+  "name": "MarvinBot",
+  "version": "0.0.1",
+  "description": "MarvinBot is a sad bot.",
+  "main": "bot.js",
+  "author": "Castro Wilde",
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "enmap": "^0.4.2",
+    "enmap-level": "^1.0.0",
+    "moment": "^2.18.1",
+    "moment-duration-format": "^1.3.0",
+    "request": "^2.83.0",
+    "winston": "^2.4.0"
+  }
+}
