@@ -2,7 +2,6 @@ const Discord = require('discord.js');
 const config = require('./config.json')
 const fs = require("fs")
 var logger = require('winston');
-// var auth = require('./auth.json');
 var request = require('request');
 
 const bot = new Discord.Client({
@@ -17,13 +16,15 @@ logger.add(logger.transports.Console, {
     colorize: true
 });
 logger.level = 'silly';
-// Initialize Discord Bot
 
+// Initialize Discord Bot
 bot.on('ready', function (evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
     logger.info(bot.username + ' - (' + bot.id + ')');
 });
+
+// set bot's game
 bot.on('ready', () => {
   bot.user.setGame('Half Life 3');
 });
@@ -51,6 +52,7 @@ bot.on('message', (message) => {
       })
     }
 
+    // change the emoji which deletes bot messages
     if(command === "delemoji") {
       // newdelemoji is the EMOJI, found through its NAME
       const newdelemoji = bot.emojis.find("name", args[0]);
@@ -67,12 +69,24 @@ bot.on('message', (message) => {
       })
     }
 
+    // repeats what the user said
+    if(command === "say") {
+      // makes the bot say something and delete the message. As an example, it's open to anyone to use.
+      // To get the "message" itself we join the `args` back into a string with spaces:
+      const sayMessage = args.join(" ");
+      // Then we delete the command message (sneaky, right?). The catch just ignores the error with a cute smiley thing.
+      message.delete().catch(O_o=>{});
+      // And we get the bot to say the thing:
+      message.channel.send(sayMessage);
+    }
+
+    // checks if twitch user is streaming
     if(command === "online"){
       var answer;
       let channel = args[0]
       request({
           headers: {
-            'Client-ID': 'uyyy5crymofn506aw1azcbptw7gi9g'
+            'Client-ID': config.twitch_token
           },
           uri: 'https://api.twitch.tv/kraken/streams/' + channel,
           method: 'GET'
@@ -81,8 +95,7 @@ bot.on('message', (message) => {
       var isStreaming = answer.stream != null;
       var toSend;
       if(isStreaming){
-          //toSend = channel + ' стриймва, беги да гледаш: ' + answer.stream.channel.url;
-          toSend = {
+        toSend = {
             "embed": {
               "title": answer.stream.channel.display_name + " is streaming " + answer.stream.game.toUpperCase() + "!",
               "description": answer.stream.channel.status,
@@ -141,6 +154,7 @@ bot.on('message', (message) => {
   });
   };
 
+  // sends a spam message to the user in private
     if(message.content.startsWith(config.prefix + "spam")) {
       message.author.send("Spam!");
       logger.info("got command !spam");
@@ -149,14 +163,15 @@ bot.on('message', (message) => {
     // protected command
     // if(message.author.id !== config.ownerID) return;
 
+    // answers with pong!
     if (message.content.startsWith(config.prefix + "ping")) {
       message.channel.send("pong!").then(function (message) {
         message.react(config.delemojiid);
       });
-      // add reaction
-      // message.react(':emojicastro:378846357315911680');
       logger.info("got command !ping");
-    } else
+    }
+
+    //asnwers with bar!
     if (message.content.startsWith(config.prefix + "foo")) {
       message.channel.send("bar!").then(function (message) {
         message.react(config.delemojiid);
@@ -172,7 +187,7 @@ bot.on('guildMemberAdd', member => {
   // Do nothing if the channel wasn't found on this server
   if (!channel) return;
   // Send the message, mentioning the member
-  channel.send('Welcome to the server, ${member}').then(function (message) {
+  channel.send('Welcome to the server, ' + member).then(function (message) {
     message.react(config.delemojiid);
   });
 });
