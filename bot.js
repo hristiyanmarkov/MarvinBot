@@ -26,7 +26,7 @@ bot.on('ready', function (evt) {
 
 // set bot's game
 bot.on('ready', () => {
-  bot.user.setGame('Half Life 3');
+  bot.user.setGame(config.game);
 });
 
 // listens for messages
@@ -48,12 +48,32 @@ bot.on('message', (message) => {
       // Now we have to save the file.
       fs.writeFile("./config.json", JSON.stringify(config), (err) => console.error);
       message.reply("Prefix changed to **" + config.prefix + "**").then(function (message) {
-        message.react(config.delemojiid);
+        message.react(config.delemoji);
+        logger.info("got command !prefix");
       })
     }
 
+    // sets the bot's game (activity)
+    if(command === "game") {
+      if(args[0]){
+        config.game = args.join(" ");
+        fs.writeFile("./config.json", JSON.stringify(config), (err) => console.error);
+        bot.user.setGame(config.game);
+        message.channel.send("Set bot 'game' to " + config.game).then(function (message) {
+          message.react(config.delemoji);
+          logger.info("got command !game")
+        })
+      }
+      else{
+        message.channel.send("Give me a game to play!").then(function (message) {
+          message.react(config.delemoji);
+          logger.info("got command !game")
+      })
+    }
+  }
+
     // change the emoji which deletes bot messages
-    if(command === "delemoji") {
+    /*if(command === "delemoji") {
       // newdelemoji is the EMOJI, found through its NAME
       const newdelemoji = bot.emojis.find("name", args[0]);
       // config.delemojistuff is the NAME and ID of the EMOJI
@@ -67,10 +87,11 @@ bot.on('message', (message) => {
       message.reply("New delemoji reaction changed to **" + config.delemojiid + "**").then(function (message) {
         message.react(config.delemojiid);
       })
-    }
+    }*/
 
     // repeats what the user said
     if(command === "say") {
+      if(args[0]){
       // makes the bot say something and delete the message. As an example, it's open to anyone to use.
       // To get the "message" itself we join the `args` back into a string with spaces:
       const sayMessage = args.join(" ");
@@ -78,12 +99,46 @@ bot.on('message', (message) => {
       message.delete().catch(O_o=>{});
       // And we get the bot to say the thing:
       message.channel.send(sayMessage);
+      logger.info("got command !say");
+    }else{
+      message.channel.send("I've got nothing to say. 🤐").then(function (message) {
+        message.react(config.delemoji);
+        logger.info("got command !say");
+      });
     }
+}
 
+    // change the time to wait before deleting bot message due to reaction
+    if(command === "deltime"){
+      if (!args[0]){
+        message.channel.send("Enter time to wait before deleting bot message in ms. Example:\n!deltime 1000").then(function (message) {
+          message.react(config.delemoji);
+          logger.info("got command !deltime");
+        });
+      }else{
+      let newdeltime = args[0];
+      if (newdeltime < 0 || newdeltime > 10000){
+        message.channel.send("Time to wait before deleting bot message should be > 0 and < 10000 (in ms)").then(function (message) {
+          message.react(config.delemoji);
+          logger.info("got command !deltime");
+        });
+      }else{
+      config.deltime = newdeltime;
+      fs.writeFile("./config.json", JSON.stringify(config), (err) => console.error);
+      message.channel.send("Time to wait before deleting bot message set to " + config.deltime + " ms.").then(function (message) {
+        message.react(config.delemoji);
+        logger.info("got command !deltime");
+      });
+    }
+    }
+}
     // checks if twitch user is streaming
     if(command === "online"){
+      if(!args[0]){
+        message.channel.send("Who?");
+      }else{
       var answer;
-      let channel = args[0]
+      let channel = args[0];
       request({
           headers: {
             'Client-ID': config.twitch_token
@@ -145,18 +200,52 @@ bot.on('message', (message) => {
           }
       }
       else{
-          toSend = 'сори, ' + channel + ' е офлайн';
+          toSend = {
+              "embed": {
+                "title": channel + " is offline!",
+                "description": "They're not streaming currently.",
+                "url": "http://www.twitch.tv/" + channel,
+                "color": 6570404,
+                "footer": {
+                  "icon_url": "https://cdn0.iconfinder.com/data/icons/social-network-7/50/16-128.png",
+                  "text": "Twitch.tv"
+                },
+                "author": {
+                  "name": "MarvinBot",
+                  "url": "https://discordapp.com",
+                  "icon_url": "https://raw.githubusercontent.com/hristiyanmarkov/MarvinBot/master/marvin/marvin.jpg"
+                }
+              }
+            }
       }
       message.channel.send(toSend).then(function (message) {
-        message.react(config.delemojiid);
+        message.react(config.delemoji);
       })
       logger.info("got command !online");
   });
+}
   };
+
+  // gives a random object from the list provided
+    if(message.content.startsWith(config.prefix + "random")) {
+      if(!args[0]){
+        message.channel.send("Nothing to randomize. 😬 ").then(function (message) {
+          message.react(config.delemoji);
+        });
+      }else{
+      var rand = args[Math.floor(Math.random() * args.length)];
+      message.channel.send("Randomizing....\nResult is: " + rand).then(function (message) {
+        message.react(config.delemoji);
+      });
+      logger.info("got command !random");
+    }
+}
 
   // sends a spam message to the user in private
     if(message.content.startsWith(config.prefix + "spam")) {
-      message.author.send("Spam!");
+      message.author.send("Spam!").then(function (message) {
+        message.react(config.delemoji);
+      });
       logger.info("got command !spam");
     }
 
@@ -165,18 +254,10 @@ bot.on('message', (message) => {
 
     // answers with pong!
     if (message.content.startsWith(config.prefix + "ping")) {
-      message.channel.send("pong!").then(function (message) {
-        message.react(config.delemojiid);
+      message.channel.send("Ping! :ping_pong: Pong!").then(function (message) {
+        message.react(config.delemoji);
       });
       logger.info("got command !ping");
-    }
-
-    //asnwers with bar!
-    if (message.content.startsWith(config.prefix + "foo")) {
-      message.channel.send("bar!").then(function (message) {
-        message.react(config.delemojiid);
-      });
-      logger.info("got command !foo");
     }
 });
 
@@ -188,7 +269,8 @@ bot.on('guildMemberAdd', member => {
   if (!channel) return;
   // Send the message, mentioning the member
   channel.send('Welcome to the server, ' + member).then(function (message) {
-    message.react(config.delemojiid);
+    message.react(config.delemoji);
+    logger.info("got new guild member");
   });
 });
 
@@ -196,12 +278,11 @@ bot.on('guildMemberAdd', member => {
 bot.on('messageReactionAdd', (reaction, user) => {
   // logger.info("got new reaction");
   // logger.info(reaction.emoji.identifier);
-    if(reaction.emoji.id === config.delemojiid && reaction.count > 1 && reaction.me){
+    if(reaction.emoji == config.delemoji && reaction.count > 1 && reaction.me){
   //    logger.info("got new castro");
-  // wait for 1 second before deleting the message
-      reaction.message.delete(1000);
+  // wait a bit before deleting the message
+      reaction.message.delete(config.deltime);
     }
-
 });
 
 bot.login(config.token);
